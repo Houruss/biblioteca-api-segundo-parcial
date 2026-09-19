@@ -1,0 +1,155 @@
+openapi: 3.0.3
+info:
+  title: API Biblioteca
+  description: API REST para administrar los libros de una biblioteca.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+tags:
+  - name: Libros
+    description: Operaciones para administrar libros
+paths:
+  /api/libros:
+    get:
+      tags: [Libros]
+      summary: Consultar todos los libros
+      responses:
+        '200':
+          description: Lista obtenida correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RespuestaLista'
+    post:
+      tags: [Libros]
+      summary: Registrar un libro
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LibroEntrada'
+      responses:
+        '201':
+          description: Libro registrado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RespuestaLibro'
+        '400':
+          description: Datos inválidos
+        '409':
+          description: Ya existe un libro con el mismo ISBN
+  /api/libros/titulo/{titulo}:
+    get:
+      tags: [Libros]
+      summary: Consultar libros por título
+      parameters:
+        - name: titulo
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Libro encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RespuestaLibro'
+        '404':
+          description: No se encontraron libros con ese título
+  /api/libros/{id}:
+    put:
+      tags: [Libros]
+      summary: Actualizar completamente un libro
+      parameters:
+        - $ref: '#/components/parameters/LibroId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LibroEntrada'
+      responses:
+        '200':
+          description: Libro actualizado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RespuestaLibro'
+        '404':
+          description: Libro no encontrado
+    delete:
+      tags: [Libros]
+      summary: Eliminar un libro
+      parameters:
+        - $ref: '#/components/parameters/LibroId'
+      responses:
+        '204':
+          description: Libro eliminado correctamente
+        '404':
+          description: Libro no encontrado
+components:
+  parameters:
+    LibroId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+  schemas:
+    LibroEntrada:
+      type: object
+      required: [titulo, autor, isbn, anioPublicacion, estado]
+      properties:
+        titulo:
+          type: string
+          example: Cien años de soledad
+        autor:
+          type: string
+          example: Gabriel García Márquez
+        isbn:
+          type: string
+          example: '9780307474728'
+        anioPublicacion:
+          type: integer
+          example: 1967
+        estado:
+          type: string
+          example: Disponible
+    Libro:
+      allOf:
+        - type: object
+          required: [id]
+          properties:
+            id:
+              type: integer
+              format: int64
+              example: 1
+        - $ref: '#/components/schemas/LibroEntrada'
+    RespuestaLibro:
+      type: object
+      properties:
+        mensaje:
+          type: string
+          example: Libro encontrado
+        codigo:
+          type: integer
+          example: 200
+        datos:
+          $ref: '#/components/schemas/Libro'
+    RespuestaLista:
+      type: object
+      properties:
+        mensaje:
+          type: string
+          example: Libros obtenidos correctamente
+        total:
+          type: integer
+          example: 1
+        datos:
+          type: array
+          items:
+            $ref: '#/components/schemas/Libro'
